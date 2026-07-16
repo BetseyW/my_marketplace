@@ -1,0 +1,5 @@
+{
+  "name": "note-organize",
+  "description": "将分散的技术笔记串联成结构化文档，支持自动归并和大纲引导两种模式",
+  "version": "1.0.0"
+}

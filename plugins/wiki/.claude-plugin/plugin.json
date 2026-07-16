@@ -1,0 +1,5 @@
+{
+  "name": "wiki",
+  "description": "Generate DeepWiki-style repository understanding reports with dependency graphs and reading order",
+  "version": "1.0.0"
+}

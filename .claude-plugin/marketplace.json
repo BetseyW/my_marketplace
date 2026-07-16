@@ -1,0 +1,69 @@
+{
+  "name": "my-skills",
+  "owner": {
+    "name": "BetseyW"
+  },
+  "description": "Personal skill marketplace containing utility skills for Claude Code",
+  "plugins": [
+    {
+      "name": "manim-draw",
+      "source": "./plugins/manim-draw",
+      "description": "Create diagrams and architecture figures using ManimCE with reusable TextBox/NestedTextBox building blocks"
+    },
+    {
+      "name": "manimce-best-practices",
+      "source": "./plugins/manimce-best-practices",
+      "description": "Best practices for Manim Community Edition - Scene structure, animations, LaTeX, 3D, styling, and CLI"
+    },
+    {
+      "name": "tech-note",
+      "source": "./plugins/tech-note",
+      "description": "整理、精炼技术笔记（伪代码、算法描述等），保留原文增量整理"
+    },
+    {
+      "name": "install-zsh",
+      "source": "./plugins/install-zsh",
+      "description": "安装 zsh、oh-my-zsh 及推荐插件，国内镜像加速"
+    },
+    {
+      "name": "mermaid-draw",
+      "source": "./plugins/mermaid-draw",
+      "description": "Convert Markdown flow descriptions into styled Mermaid flowcharts and rendered PNG/SVG images"
+    },
+    {
+      "name": "note-organize",
+      "source": "./plugins/note-organize",
+      "description": "将分散的技术笔记串联成结构化文档，支持自动归并和大纲引导两种模式"
+    },
+    {
+      "name": "manim-flowchart-draw",
+      "source": "./plugins/manim-flowchart-draw",
+      "description": "Create polished ManimCE flowchart diagrams for simple linear processes with snake wrapping and CJK/Latin typography"
+    },
+    {
+      "name": "answer-no-run",
+      "source": "./plugins/answer-no-run",
+      "description": "强制 agent 只回答问题不执行，适用于理解思路和权衡的场景"
+    },
+    {
+      "name": "arxiv-download",
+      "source": "./plugins/arxiv-download",
+      "description": "使用国内镜像快速下载 arXiv 论文 PDF"
+    },
+    {
+      "name": "wiki",
+      "source": "./plugins/wiki",
+      "description": "Generate DeepWiki-style repository understanding reports with dependency graphs and reading order"
+    },
+    {
+      "name": "review-no-run",
+      "source": "./plugins/review-no-run",
+      "description": "强制 agent 仅展示计划等待审批，同意前绝不执行"
+    },
+    {
+      "name": "planning-with-files",
+      "source": "./plugins/planning-with-files",
+      "description": "Manus-style file-based planning with task_plan.md, findings.md, progress.md, and handoff.md"
+    }
+  ]
+}

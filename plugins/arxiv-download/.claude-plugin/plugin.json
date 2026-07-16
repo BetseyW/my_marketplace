@@ -1,0 +1,5 @@
+{
+  "name": "arxiv-download",
+  "description": "使用国内镜像快速下载 arXiv 论文 PDF",
+  "version": "1.0.0"
+}

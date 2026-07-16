@@ -1,0 +1,5 @@
+{
+  "name": "answer-no-run",
+  "description": "强制 agent 只回答问题不执行，适用于理解思路和权衡的场景",
+  "version": "1.0.0"
+}

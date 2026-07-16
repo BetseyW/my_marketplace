@@ -1,0 +1,5 @@
+{
+  "name": "manim-flowchart-draw",
+  "description": "Create polished ManimCE flowchart diagrams for simple linear processes with snake wrapping and CJK/Latin typography",
+  "version": "1.0.0"
+}

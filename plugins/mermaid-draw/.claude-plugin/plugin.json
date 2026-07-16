@@ -1,0 +1,5 @@
+{
+  "name": "mermaid-draw",
+  "description": "Convert Markdown flow descriptions into styled Mermaid flowcharts and rendered PNG/SVG images",
+  "version": "1.0.0"
+}

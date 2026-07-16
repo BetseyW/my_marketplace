@@ -1,0 +1,5 @@
+{
+  "name": "manim-draw",
+  "description": "Create diagrams and architecture figures using ManimCE with reusable TextBox/NestedTextBox building blocks",
+  "version": "1.0.0"
+}

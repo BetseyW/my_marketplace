@@ -1,0 +1,5 @@
+{
+  "name": "review-no-run",
+  "description": "强制 agent 仅展示计划等待审批，同意前绝不执行",
+  "version": "1.0.0"
+}
