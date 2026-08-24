@@ -64,6 +64,11 @@
       "name": "planning-with-files",
       "source": "./plugins/planning-with-files",
       "description": "Manus-style file-based planning with task_plan.md, findings.md, progress.md, and handoff.md"
+    },
+    {
+      "name": "planning_context",
+      "source": "./plugins/planning_context",
+      "description": "Personalized planning + context-recording skill derived from planning-with-files. Four-file workflow (task_plan.md / findings.md / progress.md / handoff.md) with autonomous & gated modes, SHA-256 attestation, machine ledger, and /plan-goal / /plan-loop / /plan-attest commands."
     }
   ]
 }

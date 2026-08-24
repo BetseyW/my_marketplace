@@ -1,0 +1,5 @@
+{
+  "name": "planning_context",
+  "description": "Personalized context-recording skill derived from planning-with-files; tracks task_plan.md, findings.md, progress.md, handoff.md tuned to the author's habits",
+  "version": "1.0.0"
+}
