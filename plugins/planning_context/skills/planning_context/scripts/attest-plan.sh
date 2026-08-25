@@ -6,9 +6,9 @@
 # attested hash, surfacing a "[PLAN TAMPERED]" warning instead.
 #
 # Resolution:
-#   1. $PLAN_ID env var → ./.planning/$PLAN_ID/
-#   2. ./.planning/.active_plan
-#   3. Newest ./.planning/<dir>/ by mtime
+#   1. $PLAN_ID env var → ./.context/$PLAN_ID/
+#   2. ./.context/.active_plan
+#   3. Newest ./.context/<dir>/ by mtime
 #   4. Legacy ./task_plan.md at project root
 #
 # Usage:
@@ -30,8 +30,8 @@ resolve_plan_file() {
         printf "%s\n" "${plan_dir}/task_plan.md"
         return 0
     fi
-    if [ -f "./task_plan.md" ]; then
-        printf "%s\n" "./task_plan.md"
+    if [ -f "./.context/task_plan.md" ]; then
+        printf "%s\n" "./.context/task_plan.md"
         return 0
     fi
     return 1
@@ -40,9 +40,9 @@ resolve_plan_file() {
 attestation_path_for() {
     plan_file="$1"
     plan_dir="$(dirname "${plan_file}")"
-    if [ "${plan_dir}" = "." ]; then
-        # Legacy mode: store at project root.
-        printf "%s\n" "./.plan-attestation"
+    if [ "${plan_dir}" = ".context" ] || [ "${plan_dir}" = "./.context" ]; then
+        # Legacy mode: store in .context/.
+        printf "%s\n" "./.context/.attestation"
     else
         printf "%s\n" "${plan_dir}/.attestation"
     fi
@@ -116,7 +116,7 @@ case "${mode}" in
         # Note: legacy single-file mode is inherently racey across concurrent
         # sessions because both can edit task_plan.md without coordination. The
         # canonical parallel-session pattern is slug-mode under
-        # .planning/<slug>/, where each session pins PLAN_ID and gets its own
+        # .context/<slug>/, where each session pins PLAN_ID and gets its own
         # .attestation file. We surface a hint when concurrent activity is
         # detected.
         if [ -f "${attestation_file}" ]; then
@@ -127,12 +127,12 @@ case "${mode}" in
             age=$((mtime_now - mtime_prev))
             if [ "${age}" -ge 0 ] && [ "${age}" -lt 30 ] 2>/dev/null; then
                 # If we're in legacy mode (root .plan-attestation) and another
-                # session just wrote, warn. Slug-mode files in .planning/<slug>/
+                # session just wrote, warn. Slug-mode files in .context/<slug>/
                 # are per-session by construction; no need to warn there.
                 case "${attestation_file}" in
                     *./.plan-attestation|*/.plan-attestation)
                         case "${attestation_file}" in
-                            *./.planning/*) : ;;  # slug-mode, ignore
+                            *./.context/*) : ;;  # slug-mode, ignore
                             *)
                                 printf "[plan-attest] Note: %s was modified %ss ago by another process.\n" \
                                     "${attestation_file}" "${age}" >&2

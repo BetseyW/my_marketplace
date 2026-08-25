@@ -6,9 +6,9 @@
 # the orchestrator owns progress.md and task_plan.md. See architecture C3.
 #
 # Plan-dir resolution (via resolve-plan-dir.sh):
-#   1. $PLAN_ID env var -> ./.planning/$PLAN_ID/
-#   2. ./.planning/.active_plan
-#   3. Newest ./.planning/<dir>/ by mtime
+#   1. $PLAN_ID env var -> ./.context/$PLAN_ID/
+#   2. ./.context/.active_plan
+#   3. Newest ./.context/<dir>/ by mtime
 #   4. Legacy: project root (ledger lands beside ./task_plan.md)
 #
 # Usage:

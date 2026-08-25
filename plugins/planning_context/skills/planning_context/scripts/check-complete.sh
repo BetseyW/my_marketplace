@@ -6,7 +6,7 @@
 #
 # Plan-file resolution (v2.40+):
 #   1. $1 (explicit path) — first non-flag positional argument
-#   2. resolve-plan-dir.sh: $PLAN_ID env → .planning/.active_plan → newest mtime
+#   2. resolve-plan-dir.sh: $PLAN_ID env → .context/.active_plan → newest mtime
 #   3. Legacy ./task_plan.md
 #
 # This restores slug-mode parity: the Stop hook and any caller invoking with
@@ -57,8 +57,8 @@ else
         PLAN_FILE="${RESOLVED_DIR}/task_plan.md"
         PLAN_DIR="${RESOLVED_DIR}"
     else
-        PLAN_FILE="task_plan.md"
-        PLAN_DIR="."
+        PLAN_FILE=".context/task_plan.md"
+        PLAN_DIR=".context"
     fi
 fi
 

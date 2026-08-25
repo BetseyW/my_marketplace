@@ -41,7 +41,7 @@ Automatic: any task expected to span more than 5 tool calls, or resumption after
 - **`--autonomous`** — drops PreToolUse recitation; adds structured ledger summary + default SHA-256 attestation. For strong models on long tasks.
 - **`--gated`** — autonomous plus Stop-hook completion gate (5-guard decision table with runaway caps).
 
-Init via `sh scripts/init-session.sh [--autonomous|--gated] "Task name"`. Parallel plans live under `.planning/<date>-<slug>/`; switch with `set-active-plan.sh` or pin with `PLAN_ID` env var.
+Init via `sh scripts/init-session.sh [--autonomous|--gated] "Task name"`. Parallel plans live under `.context/<date>-<slug>/`; switch with `set-active-plan.sh` or pin with `PLAN_ID` env var.
 
 ## Further reading
 

@@ -7,9 +7,9 @@ allowed-tools: "Bash"
 Run the plan attestation helper for the active plan.
 
 Steps:
-1. Resolve the active plan: prefer `${PLAN_ID}` env var, then `.planning/.active_plan`, then newest `.planning/<dir>/`, then legacy `./task_plan.md`.
+1. Resolve the active plan: prefer `${PLAN_ID}` env var, then `.context/.active_plan`, then newest `.context/<dir>/`, then `.context/task_plan.md`.
 2. Compute the SHA-256 of the resolved `task_plan.md`.
-3. Write the hex digest to `.planning/<active-plan>/.attestation` (parallel-plan mode) or `./.plan-attestation` (legacy mode).
+3. Write the hex digest to `.context/<active-plan>/.attestation` (parallel-plan mode) or `.context/.attestation` (single-task mode).
 4. Confirm to the user with the short hash (first 12 hex chars) and the storage path.
 
 Implementation:

@@ -9,10 +9,10 @@
     attested hash, surfacing a "[PLAN TAMPERED]" warning instead.
 
     Plan resolution:
-      1. $env:PLAN_ID  -> ./.planning/$PLAN_ID/
-      2. ./.planning/.active_plan
-      3. Newest ./.planning/<dir>/ by LastWriteTime
-      4. Legacy ./task_plan.md at project root
+      1. $env:PLAN_ID  -> ./.context/$PLAN_ID/
+      2. ./.context/.active_plan
+      3. Newest ./.context/<dir>/ by LastWriteTime
+      4. Legacy ./.context/task_plan.md
 
 .PARAMETER Show
     Print the stored hash for the active plan.
@@ -32,7 +32,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 function Resolve-PlanFile {
-    $planRoot = Join-Path (Get-Location) ".planning"
+    $planRoot = Join-Path (Get-Location) ".context"
 
     if ($env:PLAN_ID) {
         $candidate = Join-Path $planRoot $env:PLAN_ID
@@ -61,7 +61,7 @@ function Resolve-PlanFile {
         }
     }
 
-    $legacy = Join-Path (Get-Location) "task_plan.md"
+    $legacy = Join-Path (Get-Location) ".context" | Join-Path -ChildPath "task_plan.md"
     if (Test-Path -LiteralPath $legacy) {
         return (Resolve-Path -LiteralPath $legacy).Path
     }
@@ -72,9 +72,9 @@ function Resolve-PlanFile {
 function Get-AttestationPath {
     param([string] $PlanFile)
     $planDir = Split-Path -Parent $PlanFile
-    $cwd     = (Get-Location).Path
-    if ($planDir -eq $cwd) {
-        return (Join-Path $cwd ".plan-attestation")
+    $contextDir = Join-Path (Get-Location).Path ".context"
+    if ($planDir -eq $contextDir) {
+        return (Join-Path $contextDir ".attestation")
     }
     return (Join-Path $planDir ".attestation")
 }

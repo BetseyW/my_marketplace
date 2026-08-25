@@ -2,20 +2,20 @@
 # planning-context: resolve active plan directory.
 #
 # Resolution order:
-#   1. $PLAN_ID env var → ./.planning/$PLAN_ID/ if exists
-#   2. ./.planning/.active_plan content → matching dir if exists
-#   3. Newest ./.planning/<dir>/ by mtime
-#   4. Otherwise empty stdout (caller falls back to legacy ./task_plan.md)
+#   1. $PLAN_ID env var → ./.context/$PLAN_ID/ if exists
+#   2. ./.context/.active_plan content → matching dir if exists
+#   3. Newest ./.context/<dir>/ by mtime
+#   4. Otherwise empty stdout (caller falls back to ./.context/)
 #
 # Always exits 0. Never errors out the agent loop.
 #
 # Usage:
 #   PLAN_DIR="$(sh scripts/resolve-plan-dir.sh)"
-#   PLAN_FILE="${PLAN_DIR:+$PLAN_DIR/}task_plan.md"
+#   PLAN_FILE="${PLAN_DIR:-.context}/task_plan.md"
 
 set -u
 
-PLAN_ROOT="${1:-${PWD}/.planning}"
+PLAN_ROOT="${1:-${PWD}/.context}"
 ACTIVE_FILE="${PLAN_ROOT}/.active_plan"
 
 # Plan-id safe-identifier check. Rejects whitespace, path separators, leading

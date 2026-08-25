@@ -17,7 +17,7 @@ hooks:
     - matcher: "Write|Edit"
       hooks:
         - type: command
-          command: "if [ -f task_plan.md ] || [ -f .planning/.active_plan ] || ls .planning/*/task_plan.md >/dev/null 2>&1; then printf '%s\\n' '[planning-context] After this Write/Edit, update ALL FOUR planning files where content changed:' '  1. task_plan.md   — phase Status transitions, new phases, Decisions & Errors entries.' '  2. findings.md    — append new Research / Decisions / Issues / Dead Ends / Resources / Multimodal notes.' '  3. progress.md    — append a Did / Next log line for the action just performed.' '  4. handoff.md     — OVERWRITE the resume snapshot if takeover state moved.'; fi"
+          command: "if [ -d .context ] && { [ -f .context/task_plan.md ] || [ -f .context/.active_plan ] || ls .context/*/task_plan.md >/dev/null 2>&1; }; then printf '%s\\n' '[planning-context] After this Write/Edit, update ALL FOUR planning files where content changed:' '  1. task_plan.md   — phase Status transitions, new phases, Decisions & Errors entries.' '  2. findings.md    — append new Research / Decisions / Issues / Dead Ends / Resources / Multimodal notes.' '  3. progress.md    — append a Did / Next log line for the action just performed.' '  4. handoff.md     — OVERWRITE the resume snapshot if takeover state moved.'; fi"
   Stop:
     - hooks:
         - type: command
@@ -54,8 +54,8 @@ Planning / breaking down / retrospective / handoff / context logging / progress 
 
 **Before doing anything else**, check whether the planning files exist and read them:
 
-1. If `handoff.md` exists → **read it first** (the fastest resume-entry point).
-2. If `task_plan.md` exists → read `task_plan.md`, `progress.md`, and `findings.md`.
+1. If `.context/handoff.md` exists → **read it first** (the fastest resume-entry point).
+2. If `.context/task_plan.md` exists → read `.context/task_plan.md`, `.context/progress.md`, and `.context/findings.md`.
 3. Then check for unsynced context from a previous session:
 
 ```bash
@@ -77,23 +77,24 @@ If catchup report shows unsynced context:
 ## Important: Where Files Go
 
 - **Templates** are in `${CLAUDE_PLUGIN_ROOT}/skills/planning_context/templates/`.
-- **Your planning files** go in **your project directory**, not the skill installation folder.
+- **Your planning files** go in **your project's `.context/` directory** (created automatically by `init-session.sh`).
 
 | Location | What Goes There |
 |----------|-----------------|
 | Skill directory (`${CLAUDE_PLUGIN_ROOT}/skills/planning_context/`) | Templates, scripts, reference docs |
-| Your project directory | `task_plan.md`, `findings.md`, `progress.md`, `handoff.md` |
+| Your project `.context/` directory | `task_plan.md`, `findings.md`, `progress.md`, `handoff.md` |
 
 ## Quick Start
 
 Before ANY complex task:
 
-1. **Create `task_plan.md`** — Use [templates/task_plan.md](templates/task_plan.md) as reference.
-2. **Create `findings.md`** — Use [templates/findings.md](templates/findings.md) as reference.
-3. **Create `progress.md`** — Use [templates/progress.md](templates/progress.md) as reference.
-4. **Create `handoff.md`** — Use [templates/handoff.md](templates/handoff.md) as reference.
-5. **Re-read plan before decisions** — Refreshes goals in the attention window.
-6. **Update after each phase** — Mark complete, log errors, refresh the handoff snapshot.
+1. **Run `init-session.sh`** or manually create `.context/` with the four files using [templates/](templates/) as reference.
+2. **Create `.context/task_plan.md`** — Use [templates/task_plan.md](templates/task_plan.md) as reference.
+3. **Create `.context/findings.md`** — Use [templates/findings.md](templates/findings.md) as reference.
+4. **Create `.context/progress.md`** — Use [templates/progress.md](templates/progress.md) as reference.
+5. **Create `.context/handoff.md`** — Use [templates/handoff.md](templates/handoff.md) as reference.
+6. **Re-read plan before decisions** — Refreshes goals in the attention window.
+7. **Update after each phase** — Mark complete, log errors, refresh the handoff snapshot.
 
 > **Note:** Planning files go in your project root, not the skill installation folder.
 
@@ -268,9 +269,9 @@ Copy these templates to start:
 
 Helper scripts for automation (all under `${CLAUDE_PLUGIN_ROOT}/skills/planning_context/scripts/`):
 
-- `init-session.sh` — Initialise the four planning files. With a name arg, creates an isolated plan under `.planning/YYYY-MM-DD-<slug>/` for parallel task workflows. Without args, writes the four files at project root (legacy mode, backward-compatible).
-- `set-active-plan.sh` — Switch the active plan pointer (`.planning/.active_plan`). Run with a plan ID to switch; run without args to show the current one.
-- `resolve-plan-dir.sh` — Resolve the active plan directory. Checks `$PLAN_ID` env var first, then `.planning/.active_plan`, then newest plan dir by mtime, then falls back to project root (legacy). Used internally by hooks.
+- `init-session.sh` — Initialise the four planning files. With a name arg, creates an isolated plan under `.context/YYYY-MM-DD-<slug>/` for parallel task workflows. Without args, writes the four files to `.context/` (single-task mode).
+- `set-active-plan.sh` — Switch the active plan pointer (`.context/.active_plan`). Run with a plan ID to switch; run without args to show the current one.
+- `resolve-plan-dir.sh` — Resolve the active plan directory. Checks `$PLAN_ID` env var first, then `.context/.active_plan`, then newest plan dir by mtime, then falls back to `.context/` (single-task). Used internally by hooks.
 - `check-complete.sh` — Verify all phases in the active plan are complete. Also nudges when `handoff.md` is missing or older than `progress.md`.
 - `session-catchup.py` — Recover context from a previous session after `/clear`.
 - `attest-plan.sh` (and `.ps1`) — Lock the current `task_plan.md` content with a SHA-256 attestation. Hooks then refuse to inject plan content if the file diverges from the attested hash. Use `--show` to print the stored hash, `--clear` to remove the attestation. See `/plan-attest` command.
@@ -286,11 +287,11 @@ When working on multiple tasks in the same repo simultaneously:
 ```bash
 # Start task A
 sh ${CLAUDE_PLUGIN_ROOT}/skills/planning_context/scripts/init-session.sh "Backend Refactor"
-# → .planning/2026-01-10-backend-refactor/{task_plan,findings,progress,handoff}.md
+# → .context/2026-01-10-backend-refactor/{task_plan,findings,progress,handoff}.md
 
 # Start task B in a second terminal
 sh ${CLAUDE_PLUGIN_ROOT}/skills/planning_context/scripts/init-session.sh "Incident Investigation"
-# → .planning/2026-01-10-incident-investigation/{task_plan,findings,progress,handoff}.md
+# → .context/2026-01-10-incident-investigation/{task_plan,findings,progress,handoff}.md
 
 # Switch active plan
 sh ${CLAUDE_PLUGIN_ROOT}/skills/planning_context/scripts/set-active-plan.sh 2026-01-10-backend-refactor
@@ -344,7 +345,7 @@ For skill-only installs or sessions where a slash command refuses to fire, the m
 
 **Manual `/plan-goal` procedure:**
 
-1. Resolve the active plan: prefer `${PLAN_ID}` env var, then `.planning/.active_plan`, then newest `.planning/<dir>/`, then legacy `./task_plan.md`.
+1. Resolve the active plan: prefer `${PLAN_ID}` env var, then `.context/.active_plan`, then newest `.context/<dir>/`, then `.context/task_plan.md`.
 2. Read the resolved `task_plan.md`.
 3. Compose a goal condition. Default: `"all phases in task_plan.md report Status: complete and check-complete.sh reports ALL PHASES COMPLETE"`. If the user passed additional clauses, append them.
 4. Issue Claude Code's native `/goal <condition>` (CC primitive, always available).
@@ -382,7 +383,7 @@ mkdir -p .claude && cp ~/.claude/loop.md .claude/loop.md
 
 Two opt-in modes for long-running agentic work with strong models. Both key off an explicit marker file in the plan directory. With no marker present, behaviour is exactly the legacy path — nothing in this section changes it.
 
-The mode is set by writing a `.mode` file next to the plan (`.planning/<id>/.mode`, or `./.mode` in legacy root mode). `init-session.sh` writes it for you when you pass `--autonomous` or `--gated`.
+The mode is set by writing a `.mode` file next to the plan (`.context/<id>/.mode`, or `.context/.mode` in single-task mode). `init-session.sh` writes it for you when you pass `--autonomous` or `--gated`.
 
 ### The legacy invariant (promise)
 
@@ -430,7 +431,7 @@ Hosts without a blocking Stop hook still get autonomous mode (low recitation + l
 
 The gate carries its own guards so a runaway loop cannot run unbounded:
 
-- Persistent block counter in `.planning/<id>/.stop_blocks`, reset at init-session.
+- Persistent block counter in `.context/<id>/.stop_blocks`, reset at init-session.
 - Cap (default 20) on consecutive blocks. At the cap, the gate allows the stop.
 - Stall detection: no new ledger line since the previous block means the model is not progressing, so the gate allows the stop.
 - `stop_hook_active` and the host block cap are backstops, not the primary guard. The counter and stall detector are deterministic.
@@ -439,7 +440,7 @@ The gate carries its own guards so a runaway loop cannot run unbounded:
 
 In autonomous and gated mode the raw `progress.md` tail injection is replaced by a synthesised summary from `scripts/ledger-summary.sh`. The summary reports tick count, phase complete/total, the in_progress phase heading, and the last event type per agent. No free text from disk reaches the model context, and the block carries no timestamps, so it is KV-cache stable by construction.
 
-The machine ledger lives at `.planning/<id>/ledger-<agent>.jsonl`, append-only, one JSON object per line. Workers append to their own ledger; the orchestrator owns `task_plan.md`. The gate's stall detector reads the ledger (a semantic signal) rather than `progress.md` mtime (which moves on any touch). See `scripts/ledger-append.sh` and `scripts/ledger-summary.sh`.
+The machine ledger lives at `.context/<id>/ledger-<agent>.jsonl`, append-only, one JSON object per line. Workers append to their own ledger; the orchestrator owns `task_plan.md`. The gate's stall detector reads the ledger (a semantic signal) rather than `progress.md` mtime (which moves on any touch). See `scripts/ledger-append.sh` and `scripts/ledger-summary.sh`.
 
 ### Trying it
 
@@ -462,7 +463,7 @@ Because `PreToolUse` re-reads `task_plan.md` on every tool call, anything writte
 1. **Delimiter framing.** Plan content is wrapped in BEGIN/END markers and tagged as data. Reduces the surface but does not eliminate prompt injection: the model still parses the content.
 2. **Hash attestation (opt-in in legacy mode, default-on in v3 modes).** Run `/plan-attest` (or `sh scripts/attest-plan.sh`) once you have approved the current plan. The hooks compute a SHA-256 of `task_plan.md` on every fire and compare against the stored hash. On mismatch, injection is blocked with a `[PLAN TAMPERED]` warning. An attacker who writes the plan file outside this flow loses the ability to reach the model context until you explicitly re-approve.
 
-The attestation is written to `.planning/<active-plan>/.attestation` (parallel-plan mode) or `./.plan-attestation` (legacy mode). When set, the injected context also carries a `Plan-SHA256:` line so the model can log the attested hash for audit.
+The attestation is written to `.context/<active-plan>/.attestation` (parallel-plan mode) or `.context/.attestation` (single-task mode). When set, the injected context also carries a `Plan-SHA256:` line so the model can log the attested hash for audit.
 
 ### v3 hardening
 

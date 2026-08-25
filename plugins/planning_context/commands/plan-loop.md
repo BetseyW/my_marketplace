@@ -24,7 +24,7 @@ Steps:
 4. Invoke `/loop <interval> <prompt>`.
 5. Confirm to the user: print the interval, the active plan ID, and remind that bare `/loop` invocation alone (without args) runs Claude Code's built-in maintenance prompt — `/plan-loop` differs by always grounding the tick in the planning files.
 
-If `task_plan.md` does not exist, refuse and direct the user to run init-session.sh first.
+If `.context/task_plan.md` does not exist, refuse and direct the user to run init-session.sh first.
 
 Why this exists:
 

@@ -84,17 +84,17 @@ is_within_root() {
 #     dispatch needs only one script on disk to function). ---
 RESOLVED=""
 SCOPE=""
-if [ -n "${PLAN_ID:-}" ] && printf "%s" "$PLAN_ID" | grep -Eq "$SLUG_RE" && [ -d ".planning/${PLAN_ID}" ]; then
-    RESOLVED=".planning/${PLAN_ID}"; SCOPE="scoped"
-elif [ -f .planning/.active_plan ]; then
-    AP=$(tr -d '\r\n[:space:]' < .planning/.active_plan 2>/dev/null)
-    if [ -n "$AP" ] && printf "%s" "$AP" | grep -Eq "$SLUG_RE" && [ -d ".planning/${AP}" ]; then
-        RESOLVED=".planning/${AP}"; SCOPE="scoped"
+if [ -n "${PLAN_ID:-}" ] && printf "%s" "$PLAN_ID" | grep -Eq "$SLUG_RE" && [ -d ".context/${PLAN_ID}" ]; then
+    RESOLVED=".context/${PLAN_ID}"; SCOPE="scoped"
+elif [ -f .context/.active_plan ]; then
+    AP=$(tr -d '\r\n[:space:]' < .context/.active_plan 2>/dev/null)
+    if [ -n "$AP" ] && printf "%s" "$AP" | grep -Eq "$SLUG_RE" && [ -d ".context/${AP}" ]; then
+        RESOLVED=".context/${AP}"; SCOPE="scoped"
     fi
 fi
-if [ -z "$RESOLVED" ] && [ -d .planning ]; then
+if [ -z "$RESOLVED" ] && [ -d .context ]; then
     NEWEST=""; NEWEST_MT=0
-    for d in .planning/*/; do
+    for d in .context/*/; do
         d="${d%/}"; n=$(basename "$d")
         case "$n" in .*) continue;; esac
         printf "%s" "$n" | grep -Eq "$SLUG_RE" || continue
@@ -104,7 +104,7 @@ if [ -z "$RESOLVED" ] && [ -d .planning ]; then
     done
     [ -n "$NEWEST" ] && { RESOLVED="$NEWEST"; SCOPE="scoped"; }
 fi
-if [ -z "$RESOLVED" ] && [ -f task_plan.md ]; then RESOLVED="."; SCOPE="root"; fi
+if [ -z "$RESOLVED" ] && [ -f .context/task_plan.md ]; then RESOLVED=".context"; SCOPE="legacy"; fi
 [ -z "$RESOLVED" ] && exit 0
 
 # Containment guard (security A1.3): the resolved dir must canonicalize under the
@@ -114,15 +114,15 @@ if [ -z "$RESOLVED" ] && [ -f task_plan.md ]; then RESOLVED="."; SCOPE="root"; f
 # canonicalizer exists keeps legacy byte-equivalence on minimal shells.
 is_within_root "$RESOLVED" || exit 0
 
-if [ "$SCOPE" = "root" ]; then
-    PLAN_FILE="task_plan.md"
-    PROGRESS_FILE="progress.md"
-    HANDOFF_FILE="handoff.md"
-    FINDINGS_FILE="findings.md"
+if [ "$SCOPE" = "legacy" ]; then
+    PLAN_FILE=".context/task_plan.md"
+    PROGRESS_FILE=".context/progress.md"
+    HANDOFF_FILE=".context/handoff.md"
+    FINDINGS_FILE=".context/findings.md"
     ATTEST=""
-    [ -f .plan-attestation ] && ATTEST=$(tr -d '\r\n[:space:]' < .plan-attestation 2>/dev/null)
-    MODE_FILE=".mode"
-    NONCE_FILE=".nonce"
+    [ -f .context/.attestation ] && ATTEST=$(tr -d '\r\n[:space:]' < .context/.attestation 2>/dev/null)
+    MODE_FILE=".context/.mode"
+    NONCE_FILE=".context/.nonce"
 else
     PLAN_FILE="${RESOLVED}/task_plan.md"
     PROGRESS_FILE="${RESOLVED}/progress.md"

@@ -14,7 +14,7 @@ import os
 from pathlib import Path
 from typing import List, Dict, Optional, Tuple
 
-PLANNING_FILES = ['task_plan.md', 'progress.md', 'findings.md']
+PLANNING_FILES = ['.context/task_plan.md', '.context/progress.md', '.context/findings.md']
 
 
 def normalize_path(project_path: str) -> str:
@@ -247,7 +247,7 @@ def main():
 
     print("\n--- RECOMMENDED ---")
     print("1. Run: git diff --stat")
-    print("2. Read: task_plan.md, progress.md, findings.md")
+    print("2. Read: .context/task_plan.md, .context/progress.md, .context/findings.md, .context/handoff.md")
     print("3. Update planning files based on above context")
     print("4. Continue with task")
 

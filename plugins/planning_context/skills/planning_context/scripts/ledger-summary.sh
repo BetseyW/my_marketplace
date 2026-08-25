@@ -8,9 +8,9 @@
 # (architecture C3 injection rule).
 #
 # Plan-dir resolution (via resolve-plan-dir.sh):
-#   1. $PLAN_ID env var -> ./.planning/$PLAN_ID/
-#   2. ./.planning/.active_plan
-#   3. Newest ./.planning/<dir>/ by mtime
+#   1. $PLAN_ID env var -> ./.context/$PLAN_ID/
+#   2. ./.context/.active_plan
+#   3. Newest ./.context/<dir>/ by mtime
 #   4. Legacy: project root
 #
 # Usage:
@@ -45,8 +45,8 @@ resolve_plan_dir() {
 
 PLAN_DIR="$(resolve_plan_dir)"
 
-if [ "${PLAN_DIR}" = "." ]; then
-    PLAN_FILE="./task_plan.md"
+if [ "${PLAN_DIR}" = "." ] || [ "${PLAN_DIR}" = ".context" ]; then
+    PLAN_FILE="./.context/task_plan.md"
 else
     PLAN_FILE="${PLAN_DIR}/task_plan.md"
 fi

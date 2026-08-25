@@ -11,9 +11,9 @@
 # re-attest at phase boundaries (see attest-plan.sh).
 #
 # Plan-dir resolution (via resolve-plan-dir.sh):
-#   1. $PLAN_ID env var -> ./.planning/$PLAN_ID/
-#   2. ./.planning/.active_plan
-#   3. Newest ./.planning/<dir>/ by mtime
+#   1. $PLAN_ID env var -> ./.context/$PLAN_ID/
+#   2. ./.context/.active_plan
+#   3. Newest ./.context/<dir>/ by mtime
 #   4. Legacy: project root ./task_plan.md
 #
 # Usage:
@@ -39,8 +39,8 @@ resolve_plan_file() {
         printf "%s\n" "${plan_dir}/task_plan.md"
         return 0
     fi
-    if [ -f "./task_plan.md" ]; then
-        printf "%s\n" "./task_plan.md"
+    if [ -f "./.context/task_plan.md" ]; then
+        printf "%s\n" "./.context/task_plan.md"
         return 0
     fi
     return 1

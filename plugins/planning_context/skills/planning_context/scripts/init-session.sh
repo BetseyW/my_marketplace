@@ -3,7 +3,7 @@
 #
 # Usage:
 #   ./init-session.sh                              # legacy: root-level 4 files
-#   ./init-session.sh "Backend Refactor"           # slug mode: .planning/<date>-backend-refactor/
+#   ./init-session.sh "Backend Refactor"           # slug mode: .context/<date>-backend-refactor/
 #   ./init-session.sh --plan-dir                   # slug mode with auto-generated untitled-<short> name
 #   ./init-session.sh --plan-dir "Quick Spike"     # slug mode, explicit slug
 #   ./init-session.sh --autonomous "Long Run"      # v3 autonomous mode (opt-in)
@@ -251,7 +251,7 @@ if [ "$SLUG_MODE" -eq 1 ]; then
     fi
     BASE_ID="${DATE}-${SLUG}"
     PLAN_ID="$BASE_ID"
-    PLAN_ROOT="${PWD}/.planning"
+    PLAN_ROOT="${PWD}/.context"
     counter=2
     while [ -d "${PLAN_ROOT}/${PLAN_ID}" ]; do
         PLAN_ID="${BASE_ID}-${counter}"
@@ -275,12 +275,13 @@ if [ "$SLUG_MODE" -eq 1 ]; then
 else
     PROJECT_NAME="${PROJECT_NAME:-project}"
     echo "Initializing planning files for: $PROJECT_NAME"
-    create_files_in "$(pwd)"
-    apply_v3_mode "$(pwd)" "$(pwd)/task_plan.md"
+    mkdir -p "$(pwd)/.context"
+    create_files_in "$(pwd)/.context"
+    apply_v3_mode "$(pwd)/.context" "$(pwd)/.context/task_plan.md"
     echo ""
     echo "Planning files initialized!"
-    echo "Files: task_plan.md, findings.md, progress.md, handoff.md"
+    echo "Files: .context/task_plan.md, .context/findings.md, .context/progress.md, .context/handoff.md"
     if [ -n "$MODE" ]; then
-        echo "Mode: $(cat "$(pwd)/.mode") (attested, gate counter reset)"
+        echo "Mode: $(cat "$(pwd)/.context/.mode") (attested, gate counter reset)"
     fi
 fi
