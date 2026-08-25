@@ -28,7 +28,7 @@ hooks:
         - type: command
           command: "SH=\"${CLAUDE_PLUGIN_ROOT}/skills/planning_context/scripts/inject-plan.sh\"; [ -f \"$SH\" ] || SH=$(ls \"$HOME/.claude/skills/planning_context/scripts/inject-plan.sh\" \"$HOME/.claude/plugins/marketplaces/planning_context/skills/planning_context/scripts/inject-plan.sh\" 2>/dev/null | head -1); [ -n \"$SH\" ] && [ -f \"$SH\" ] && sh \"$SH\" --context=precompact; exit 0"
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 # Planning Context
