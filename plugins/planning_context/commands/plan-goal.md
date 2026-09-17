@@ -8,7 +8,7 @@ Bridge the active plan to Claude Code's `/goal` primitive.
 
 Steps:
 
-1. Resolve the active plan: prefer `${PLAN_ID}` env var, then `.context/.active_plan`, then newest `.context/<dir>/`, then `.context/task_plan.md`.
+1. Resolve the active plan: prefer `${PLAN_ID}` env var, then `.context/.active_plan` (a side-task slug), otherwise fall back to main-line at `.context/task_plan.md`.
 2. Read the resolved `task_plan.md`.
 3. Derive a goal condition from the plan content:
    - Default: "all phases in task_plan.md report Status: complete and check-complete.sh reports ALL PHASES COMPLETE"

@@ -28,7 +28,7 @@ hooks:
         - type: command
           command: "SH=\"${CLAUDE_PLUGIN_ROOT}/skills/planning_context/scripts/inject-plan.sh\"; [ -f \"$SH\" ] || SH=$(ls \"$HOME/.claude/skills/planning_context/scripts/inject-plan.sh\" \"$HOME/.claude/plugins/marketplaces/planning_context/skills/planning_context/scripts/inject-plan.sh\" 2>/dev/null | head -1); [ -n \"$SH\" ] && [ -f \"$SH\" ] && sh \"$SH\" --context=precompact; exit 0"
 metadata:
-  version: "1.1.0"
+  version: "1.2.0"
 ---
 
 # Planning Context
@@ -45,6 +45,8 @@ findings.md   = knowledge base: requirements / constraints, discoveries, decisio
 progress.md   = timeline: chronological session log, commands and resules
 handoff.md    = overall snapshot: the fastest resume-entry point for the next agent after /clear or compaction.
 ```
+
+Main-line lives at `.context/` root. Side-tasks (less-important branches, opened via `/plan-side` after user confirmation) live at `.context/<slug>/` and inherit main-line memory: when a side-task is active, the hook auto-injects the main-line `handoff.md` head alongside the side-task's own files. Side-tasks merge results back with `/plan-close`. See "Main-line and side-tasks" below.
 
 ## When to Trigger
 
@@ -156,9 +158,29 @@ Every error goes into `findings.md`, `task_plan.md`, `progress.md`, and (when re
 ### 7. Handoff Is a Snapshot, Not a Log
 Content that belongs in `progress.md` (per-session timeline) does not belong in `handoff.md`. Write `handoff.md` as an overwrite snapshot per its template — current-in-force only, not historical.
 
-### 8. New Tasks and Side-Tasks
-When the user gives new work after all phases are complete, or a side-task while a phase is in progress:
-- Add a new Phase to `task_plan.md`. Do not stuff it into a completed or unrelated Phase; new Phase starts in Pending.
+### 8. New Work: Ask Before Branching (add phase vs open side-task)
+When the user gives new work — whether after all phases are complete, or a side-task while a phase is in progress — never auto-decide the structure. Judge semantically, then ASK.
+
+**Semantic judgment (form a hypothesis, do not act on it):**
+- Lean **"add phase to main-line"** when: the request advances the same Overall Goal; touches the same code domain / file set; is a natural next step from the current phase; can plausibly close in 1-3 sessions.
+- Lean **"open side-task"** when: the request steps outside the current Overall Goal; involves a different domain or deliverable; length or scope is unclear or clearly long; main-line is not yet finished but the work cannot wait.
+
+**Confirmation is mandatory before any structural action.** Before calling `init-session.sh` OR appending a new phase to `task_plan.md`, ask the user:
+
+> I read this as [add-phase / open side-task]. Choose:
+> (a) Add Phase N: `<name>` to main-line `.context/task_plan.md`
+> (b) Open side-task `<suggested slug>` at `.context/<slug>/` — it will inherit main-line handoff automatically and merge results back via `/plan-close`
+> (c) Neither — just do the work without touching planning files
+
+Rules for the ask:
+- Never call `init-session.sh` without user confirmation when `.context/` already has main-line content. Side-tasks are a fork of user attention, not an implementation detail.
+- Adding a phase is low-risk and does not need a full new plan — prefer it whenever the work fits main-line's Overall Goal.
+- A new Phase always starts in Pending. Never stuff it into a completed or unrelated Phase.
+
+**Exceptions that do not need the ask:**
+- `.context/` is empty (first-ever setup): run `init-session.sh` directly.
+- The user's request is a small, atomic edit / question / single tool call: just do it, no plan mutation needed.
+- The user explicitly says "add phase X" or "open a side-task called Y": follow the directive.
 
 ### 9. Writing Style Convention (applies to every planning file)
 - **Concise, clearly structured, easy to read** is a hard requirement — this SKILL, the four templates, and every appended entry.
@@ -269,10 +291,11 @@ Copy these templates to start:
 
 Helper scripts for automation (all under `${CLAUDE_PLUGIN_ROOT}/skills/planning_context/scripts/`):
 
-- `init-session.sh` — Initialise the four planning files. With a name arg, creates an isolated plan under `.context/YYYY-MM-DD-<slug>/` for parallel task workflows. Without args, writes the four files to `.context/` (single-task mode).
-- `set-active-plan.sh` — Switch the active plan pointer (`.context/.active_plan`). Run with a plan ID to switch; run without args to show the current one.
-- `resolve-plan-dir.sh` — Resolve the active plan directory. Checks `$PLAN_ID` env var first, then `.context/.active_plan`, then newest plan dir by mtime, then falls back to `.context/` (single-task). Used internally by hooks.
-- `check-complete.sh` — Verify all phases in the active plan are complete. Also nudges when `handoff.md` is missing or older than `progress.md`.
+- `init-session.sh` — Initialise the four planning files. Without args, writes them to `.context/` (main-line). With a name arg, creates a side-task under `.context/YYYY-MM-DD-<slug>/` and sets it as active. Refuses when a side-task is already active (no nesting).
+- `set-active-plan.sh` — Switch the active plan pointer (`.context/.active_plan`). `<slug>` → activate that side-task; `main` → clear the pointer and return to main-line; no arg → print the current active plan.
+- `close-plan.sh` — Close a side-task by merging its results back into main-line. Takes `<slug> --summary "..." --finding "..." [--keep]`. Appends both strings to `.context/progress.md` and `.context/findings.md` (tagged `[from side: <slug>]`) and archives the side-task directory to `.context/.archived/<slug>/`. The agent MUST draft the two strings and get user confirmation before invoking.
+- `resolve-plan-dir.sh` — Resolve the active plan directory. Checks `$PLAN_ID` env var first, then `.context/.active_plan`; unresolved → empty stdout, caller falls back to `.context/` (main-line). Used internally by hooks.
+- `check-complete.sh` — Verify all phases in the active plan are complete. Also nudges when `handoff.md` is missing or older than `progress.md`, and when a fully-complete side-task should be closed via `close-plan.sh`.
 - `session-catchup.py` — Recover context from a previous session after `/clear`.
 - `attest-plan.sh` (and `.ps1`) — Lock the current `task_plan.md` content with a SHA-256 attestation. Hooks then refuse to inject plan content if the file diverges from the attested hash. Use `--show` to print the stored hash, `--clear` to remove the attestation. See `/plan-attest` command.
 - `inject-plan.sh` — Central hook dispatcher: resolves the active plan, verifies attestation, and emits plan context. Called by `UserPromptSubmit`, `PreToolUse`, and `PreCompact` hooks.
@@ -280,27 +303,56 @@ Helper scripts for automation (all under `${CLAUDE_PLUGIN_ROOT}/skills/planning_
 - `phase-status.sh` — Concurrent-safe writer of `task_plan.md` phase status lines.
 - `ledger-append.sh` / `ledger-summary.sh` — Machine-readable append-only ledger for v3 autonomous/gated modes.
 
-### Parallel task workflow
+### Main-line and side-tasks (v1.2.0)
 
-When working on multiple tasks in the same repo simultaneously:
+`.context/` has a fixed two-level shape:
 
-```bash
-# Start task A
-sh ${CLAUDE_PLUGIN_ROOT}/skills/planning_context/scripts/init-session.sh "Backend Refactor"
-# → .context/2026-01-10-backend-refactor/{task_plan,findings,progress,handoff}.md
-
-# Start task B in a second terminal
-sh ${CLAUDE_PLUGIN_ROOT}/skills/planning_context/scripts/init-session.sh "Incident Investigation"
-# → .context/2026-01-10-incident-investigation/{task_plan,findings,progress,handoff}.md
-
-# Switch active plan
-sh ${CLAUDE_PLUGIN_ROOT}/skills/planning_context/scripts/set-active-plan.sh 2026-01-10-backend-refactor
-
-# Or pin a terminal to a specific plan
-export PLAN_ID=2026-01-10-backend-refactor
+```
+.context/
+├── task_plan.md      ← main-line (always here, always the parent)
+├── findings.md
+├── progress.md
+├── handoff.md        ← Active Side-Tasks table lives at the bottom
+├── .active_plan      ← empty/absent = main-line active; a slug = that side-task active
+├── .archived/        ← closed side-tasks land here by default
+├── <slug-a>/         ← side-task A (flat — no nesting allowed)
+│   └── task_plan.md, findings.md, progress.md, handoff.md
+└── <slug-b>/         ← side-task B
 ```
 
-Each session reads from its own isolated plan directory. Hooks resolve the correct plan automatically.
+**Resolution:** `$PLAN_ID` env → `.context/.active_plan` → main-line `.context/`. There is no "newest by mtime" fallback; when nothing is explicitly active, the agent is on main-line.
+
+**Context inheritance:** when a side-task is active, every UserPromptSubmit hook auto-injects the main-line `handoff.md` head alongside the side-task's own files. Main-line `task_plan.md` and `findings.md` are read on demand — the agent reads them from `.context/` when it needs deeper context. This keeps turn-start injection bounded while preserving main-line memory for side-tasks.
+
+**Closing a side-task = merging back:** side-task results merge into main-line via `/plan-close` (or `scripts/close-plan.sh <slug>`). The agent drafts a one-line summary and a one-line key finding, the user confirms, then the script appends both into `.context/progress.md` and `.context/findings.md` (tagged `[from side: <slug>]`) and archives the side-task directory. Main-line `handoff.md` Active Side-Tasks row must be flipped from `open` to `closed YYYY-MM-DD` manually — the overwrite snapshot is agent-owned, not scripted.
+
+**No nested side-tasks.** `init-session.sh` refuses to create a new side-task while `.active_plan` already points at one. Close it or return to main-line (`set-active-plan.sh main`) first.
+
+### Parallel task workflow
+
+When working on multiple tasks in the same repo simultaneously (side-task branches off main-line):
+
+```bash
+# Main-line already established at .context/ from earlier init-session.sh (no args).
+
+# Open a side-task — ASK the user first (see Rule 8). Agent then runs:
+sh ${CLAUDE_PLUGIN_ROOT}/skills/planning_context/scripts/init-session.sh "Incident Investigation"
+# → .context/2026-01-10-incident-investigation/{task_plan,findings,progress,handoff}.md
+# → .context/.active_plan = 2026-01-10-incident-investigation
+
+# Pin a terminal to a specific side-task (parallel sessions in different shells)
+export PLAN_ID=2026-01-10-incident-investigation
+
+# Return to main-line
+sh ${CLAUDE_PLUGIN_ROOT}/skills/planning_context/scripts/set-active-plan.sh main
+
+# Close the side-task (merge back). Agent drafts, user confirms, then:
+sh ${CLAUDE_PLUGIN_ROOT}/skills/planning_context/scripts/close-plan.sh 2026-01-10-incident-investigation \
+    --summary "Investigated 502 spike; traced to upstream retry storm" \
+    --finding "Retry policy needs jitter; open follow-up in main task_plan"
+```
+
+Each side-task reads from its own directory but inherits main-line handoff via the hooks — the agent does not lose main-line memory.
 
 ## Claude Code Turn-Loop Integration
 
@@ -345,7 +397,7 @@ For skill-only installs or sessions where a slash command refuses to fire, the m
 
 **Manual `/plan-goal` procedure:**
 
-1. Resolve the active plan: prefer `${PLAN_ID}` env var, then `.context/.active_plan`, then newest `.context/<dir>/`, then `.context/task_plan.md`.
+1. Resolve the active plan: prefer `${PLAN_ID}` env var, then `.context/.active_plan` (a side-task slug); otherwise fall back to main-line at `.context/task_plan.md`.
 2. Read the resolved `task_plan.md`.
 3. Compose a goal condition. Default: `"all phases in task_plan.md report Status: complete and check-complete.sh reports ALL PHASES COMPLETE"`. If the user passed additional clauses, append them.
 4. Issue Claude Code's native `/goal <condition>` (CC primitive, always available).

@@ -99,6 +99,19 @@
 - [ ] [command / check]
 - [ ] [manual review / check]
 
+## Active Side-Tasks
+<!--
+  仅主线 handoff 使用；支线自己的 handoff 无需此段。
+  每条支线：目录名 · 一句话状态 · 是否已 close。
+  Close 后要么删除条目，要么把 Status 改为 "closed YYYY-MM-DD"。
+  Main-line only; a side-task's own handoff omits this section.
+  On close: either remove the entry or mark Status "closed YYYY-MM-DD".
+-->
+
+| Side-task (`.context/<slug>/`) | Status | One-line note |
+|--------------------------------|--------|---------------|
+|                                | open / closed YYYY-MM-DD |    |
+
 ## Links to Details
 <!-- 一句关键词说清"该翻哪一份"，避免续跑者盲翻。 -->
 

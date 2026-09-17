@@ -2,10 +2,15 @@
 # planning-context: resolve active plan directory.
 #
 # Resolution order:
-#   1. $PLAN_ID env var → ./.context/$PLAN_ID/ if exists
-#   2. ./.context/.active_plan content → matching dir if exists
-#   3. Newest ./.context/<dir>/ by mtime
-#   4. Otherwise empty stdout (caller falls back to ./.context/)
+#   1. $PLAN_ID env var → ./.context/$PLAN_ID/ if exists  (side-task)
+#   2. ./.context/.active_plan content → matching dir if exists  (side-task)
+#   3. Otherwise empty stdout (caller falls back to ./.context/, the main-line plan)
+#
+# Design contract (v1.2.0): main-line lives at .context/ root; side-tasks live at
+# .context/<slug>/. When no side-task is explicitly active, we ALWAYS default to
+# the main-line. The old "newest slug dir by mtime" fallback was removed because
+# it silently switched context on the user; the /clear or resume path should
+# return to main-line, not to whichever side-task happened to be touched last.
 #
 # Always exits 0. Never errors out the agent loop.
 #
@@ -80,31 +85,6 @@ is_within_root() {
     esac
 }
 
-# Portable mtime resolver. Tries GNU stat, BSD stat, BSD/macOS date -r,
-# python3, then perl. Returns "0" on full miss so callers can sort.
-mtime_of() {
-    target="$1"
-    out="$(stat -c '%Y' "${target}" 2>/dev/null)"
-    if [ -n "${out}" ]; then printf "%s\n" "${out}"; return 0; fi
-    out="$(stat -f '%m' "${target}" 2>/dev/null)"
-    if [ -n "${out}" ]; then printf "%s\n" "${out}"; return 0; fi
-    out="$(date -r "${target}" +%s 2>/dev/null)"
-    if [ -n "${out}" ]; then printf "%s\n" "${out}"; return 0; fi
-    if command -v python3 >/dev/null 2>&1; then
-        out="$(python3 -c "import os,sys;print(int(os.stat(sys.argv[1]).st_mtime))" "${target}" 2>/dev/null)"
-        if [ -n "${out}" ]; then printf "%s\n" "${out}"; return 0; fi
-    fi
-    if command -v python >/dev/null 2>&1; then
-        out="$(python -c "import os,sys;print(int(os.stat(sys.argv[1]).st_mtime))" "${target}" 2>/dev/null)"
-        if [ -n "${out}" ]; then printf "%s\n" "${out}"; return 0; fi
-    fi
-    if command -v perl >/dev/null 2>&1; then
-        out="$(perl -e 'print((stat shift)[9])' "${target}" 2>/dev/null)"
-        if [ -n "${out}" ]; then printf "%s\n" "${out}"; return 0; fi
-    fi
-    printf "0\n"
-}
-
 resolve_from_env() {
     plan_id="${PLAN_ID:-}"
     slug_is_valid "${plan_id}" || return 1
@@ -128,36 +108,8 @@ resolve_from_active_file() {
     return 1
 }
 
-resolve_latest_dir() {
-    [ -d "${PLAN_ROOT}" ] || return 1
-    # Portable newest-mtime selector. Skips hidden dirs, slug-invalid names,
-    # and dirs without task_plan.md (e.g. sessions/).
-    latest=""
-    latest_mtime=0
-    for entry in "${PLAN_ROOT}"/*/; do
-        [ -d "${entry}" ] || continue
-        clean="${entry%/}"
-        name="$(basename "${clean}")"
-        case "${name}" in
-            .*) continue ;;
-        esac
-        slug_is_valid "${name}" || continue
-        [ -f "${clean}/task_plan.md" ] || continue
-        is_within_root "${clean}" || continue
-        mtime="$(mtime_of "${clean}")"
-        if [ "${mtime}" -gt "${latest_mtime}" ] 2>/dev/null; then
-            latest_mtime="${mtime}"
-            latest="${clean}"
-        fi
-    done
-    if [ -n "${latest}" ]; then
-        printf "%s\n" "${latest}"
-        return 0
-    fi
-    return 1
-}
-
 if resolve_from_env; then exit 0; fi
 if resolve_from_active_file; then exit 0; fi
-if resolve_latest_dir; then exit 0; fi
+# No mtime fallback (v1.2.0): unresolved → empty stdout → caller uses .context/
+# main-line. See resolution-order comment at the top of this file.
 exit 0

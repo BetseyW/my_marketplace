@@ -115,10 +115,32 @@ handoff_advisory() {
     fi
 }
 
+# is_side_task: true when PLAN_DIR is a side-task (.context/<slug>/), false when
+# it is main-line (.context/ itself). Uses realpath when available so ./.context
+# and .context both resolve identically.
+is_side_task() {
+    _pd="$PLAN_DIR"
+    if command -v realpath >/dev/null 2>&1; then
+        _pd="$(realpath "$PLAN_DIR" 2>/dev/null || printf %s "$PLAN_DIR")"
+    fi
+    _root="${PWD}/.context"
+    if command -v realpath >/dev/null 2>&1; then
+        _root="$(realpath "$_root" 2>/dev/null || printf %s "$_root")"
+    fi
+    [ "$_pd" != "$_root" ]
+}
+
 # advisory_report: the v2.43 status echo + handoff advisory. Always exit 0.
 advisory_report() {
     if [ "$COMPLETE" -eq "$TOTAL" ] && [ "$TOTAL" -gt 0 ]; then
         echo "[planning-context] ALL PHASES COMPLETE ($COMPLETE/$TOTAL). If the user has additional work, add new phases to task_plan.md before starting."
+        # Side-task specific nudge: when a side-task is fully complete, remind
+        # the agent to close it (merge back to main-line) rather than leaving
+        # the directory dangling. Extract the side-task slug from PLAN_DIR.
+        if is_side_task; then
+            _slug="$(basename "$PLAN_DIR")"
+            echo "[planning-context] Side-task '${_slug}' is fully complete. Draft a one-line summary and one-line key finding, confirm with the user, then run: sh scripts/close-plan.sh ${_slug} --summary '...' --finding '...'"
+        fi
     else
         echo "[planning-context] Task in progress ($COMPLETE/$TOTAL phases complete). Update progress.md before stopping."
         if [ "$IN_PROGRESS" -gt 0 ]; then

@@ -252,6 +252,25 @@ if [ "$SLUG_MODE" -eq 1 ]; then
     BASE_ID="${DATE}-${SLUG}"
     PLAN_ID="$BASE_ID"
     PLAN_ROOT="${PWD}/.context"
+
+    # Nesting guard (v1.2.0): side-tasks are flat under .context/. If a side-task
+    # is already active per .active_plan, refuse to create another one on top.
+    # Close it with close-plan.sh or return to main-line before spawning a new
+    # side-task. Note we do NOT check env $PLAN_ID here — that variable also
+    # gets set for slug-mode init by this very script, so relying on it would
+    # produce false positives when a user runs init-session.sh from a shell
+    # that pinned PLAN_ID for a previous side-task session.
+    if [ -f "${PLAN_ROOT}/.active_plan" ]; then
+        _ap="$(tr -d '\r\n[:space:]' < "${PLAN_ROOT}/.active_plan" 2>/dev/null)"
+        if [ -n "${_ap}" ] && [ -d "${PLAN_ROOT}/${_ap}" ]; then
+            echo "Error: a side-task is already active: ${_ap}" >&2
+            echo "Side-tasks cannot nest. Close it or return to main-line first:" >&2
+            echo "  sh scripts/close-plan.sh ${_ap} --summary '...' --finding '...'" >&2
+            echo "  sh scripts/set-active-plan.sh main" >&2
+            exit 1
+        fi
+    fi
+
     counter=2
     while [ -d "${PLAN_ROOT}/${PLAN_ID}" ]; do
         PLAN_ID="${BASE_ID}-${counter}"
