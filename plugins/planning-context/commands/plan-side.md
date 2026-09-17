@@ -12,7 +12,7 @@ Steps:
 2. **Nesting guard.** If `.context/.active_plan` already points at a live side-task directory, refuse. Tell the user to close it (`/plan-close`) or return to main-line (`set-active-plan.sh main`) before opening another.
 3. **Confirm with the user before creating.** Show the proposed slug and confirm it should be a *side-task*, not a new phase on main-line. Never auto-create.
 4. **Parse args:** everything after `/plan-side` is the side-task name (may be multiple words). If empty, ask the user for a name.
-5. **Invoke** `sh ${CLAUDE_PLUGIN_ROOT}/skills/planning_context/scripts/init-session.sh "<name>"`. This:
+5. **Invoke** `sh ${CLAUDE_PLUGIN_ROOT}/skills/planning-context/scripts/init-session.sh "<name>"`. This:
    - creates `.context/YYYY-MM-DD-<slug>/{task_plan,findings,progress,handoff}.md`,
    - writes `.context/.active_plan = <slug>` so the side-task becomes active,
    - inherits main-line context via `inject-plan.sh`, which auto-injects `.context/handoff.md` (main-line) alongside the side-task's own files on every UserPromptSubmit.

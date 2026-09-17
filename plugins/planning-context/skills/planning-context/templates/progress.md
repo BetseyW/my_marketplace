@@ -22,7 +22,7 @@
     Actions / errors / tests all here, one line each. Files → git diff; tmp files → bottom Tmp section.
 
     示例：
-      - [Phase 1] 复制 planning-with-files → plugins/planning_context/，标识全改
+      - [Phase 1] 复制 planning-with-files → plugins/planning-context/，标识全改
       - Edit 报 "File not read yet" → 先 Read 再 Edit，解决
       - `python3 -m json.tool` 通过 marketplace.json / plugin.json / _meta.json
   -->

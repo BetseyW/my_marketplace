@@ -13,8 +13,8 @@ Steps:
 4. Confirm to the user with the short hash (first 12 hex chars) and the storage path.
 
 Implementation:
-- On Linux/macOS/Git Bash: `sh ${CLAUDE_PLUGIN_ROOT}/skills/planning_context/scripts/attest-plan.sh`
-- On Windows PowerShell: `& "$env:USERPROFILE\.claude\plugins\marketplaces\planning_context\skills\planning_context\scripts\attest-plan.ps1"`
+- On Linux/macOS/Git Bash: `sh ${CLAUDE_PLUGIN_ROOT}/skills/planning-context/scripts/attest-plan.sh`
+- On Windows PowerShell: `& "$env:USERPROFILE\.claude\plugins\marketplaces\planning-context\skills\planning-context\scripts\attest-plan.ps1"`
 
 Flags:
 - `--show` — print the currently stored hash and where it lives.

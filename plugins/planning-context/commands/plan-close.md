@@ -22,7 +22,7 @@ Steps:
 4. **Show both drafts to the user and ask for confirmation or edits.** Do not proceed until the user has explicitly approved the wording. This step is non-negotiable — the merge is append-only and re-running duplicates the entry.
 5. **Invoke:**
    ```
-   sh ${CLAUDE_PLUGIN_ROOT}/skills/planning_context/scripts/close-plan.sh <slug> \
+   sh ${CLAUDE_PLUGIN_ROOT}/skills/planning-context/scripts/close-plan.sh <slug> \
        --summary "<confirmed summary>" \
        --finding "<confirmed finding>"
    ```

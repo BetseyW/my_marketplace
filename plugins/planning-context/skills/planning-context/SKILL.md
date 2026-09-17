@@ -1,5 +1,5 @@
 ---
-name: planning_context
+name: planning-context
 description: "Personalised planning + context-logging skill, derived from planning-with-files. Maintains four on-disk markdown files — task_plan.md / findings.md / progress.md / handoff.md — treating planning and progress-logging as equal peers. Use when asked to plan out, break down, or organise a multi-step project, research task, handoff, or any work spanning 5+ tool calls. Supports automatic session recovery after /clear. Triggers include planning, breaking down, updating planning files, preparing handoff, progress logging, session archival, and any run beyond 5 tool calls."
 user-invocable: true
 allowed-tools: "Read Write Edit Bash Glob Grep"
@@ -7,12 +7,12 @@ hooks:
   UserPromptSubmit:
     - hooks:
         - type: command
-          command: "SH=\"${CLAUDE_PLUGIN_ROOT}/skills/planning_context/scripts/inject-plan.sh\"; [ -f \"$SH\" ] || SH=$(ls \"$HOME/.claude/skills/planning_context/scripts/inject-plan.sh\" \"$HOME/.claude/plugins/marketplaces/planning_context/skills/planning_context/scripts/inject-plan.sh\" 2>/dev/null | head -1); [ -n \"$SH\" ] && [ -f \"$SH\" ] && sh \"$SH\" --context=userprompt; exit 0"
+          command: "SH=\"${CLAUDE_PLUGIN_ROOT}/skills/planning-context/scripts/inject-plan.sh\"; [ -f \"$SH\" ] || SH=$(ls \"$HOME/.claude/skills/planning-context/scripts/inject-plan.sh\" \"$HOME/.claude/plugins/marketplaces/planning-context/skills/planning-context/scripts/inject-plan.sh\" 2>/dev/null | head -1); [ -n \"$SH\" ] && [ -f \"$SH\" ] && sh \"$SH\" --context=userprompt; exit 0"
   PreToolUse:
     - matcher: "Write|Edit|Bash|Read|Glob|Grep"
       hooks:
         - type: command
-          command: "SH=\"${CLAUDE_PLUGIN_ROOT}/skills/planning_context/scripts/inject-plan.sh\"; [ -f \"$SH\" ] || SH=$(ls \"$HOME/.claude/skills/planning_context/scripts/inject-plan.sh\" \"$HOME/.claude/plugins/marketplaces/planning_context/skills/planning_context/scripts/inject-plan.sh\" 2>/dev/null | head -1); [ -n \"$SH\" ] && [ -f \"$SH\" ] && sh \"$SH\" --context=pretool; exit 0"
+          command: "SH=\"${CLAUDE_PLUGIN_ROOT}/skills/planning-context/scripts/inject-plan.sh\"; [ -f \"$SH\" ] || SH=$(ls \"$HOME/.claude/skills/planning-context/scripts/inject-plan.sh\" \"$HOME/.claude/plugins/marketplaces/planning-context/skills/planning-context/scripts/inject-plan.sh\" 2>/dev/null | head -1); [ -n \"$SH\" ] && [ -f \"$SH\" ] && sh \"$SH\" --context=pretool; exit 0"
   PostToolUse:
     - matcher: "Write|Edit"
       hooks:
@@ -21,14 +21,14 @@ hooks:
   Stop:
     - hooks:
         - type: command
-          command: "SH=\"${CLAUDE_PLUGIN_ROOT}/skills/planning_context/scripts/gate-stop.sh\"; [ -f \"$SH\" ] || SH=$(ls \"$HOME/.claude/skills/planning_context/scripts/gate-stop.sh\" \"$HOME/.claude/plugins/marketplaces/planning_context/skills/planning_context/scripts/gate-stop.sh\" 2>/dev/null | head -1); [ -n \"$SH\" ] && [ -f \"$SH\" ] && sh \"$SH\" 2>/dev/null"
+          command: "SH=\"${CLAUDE_PLUGIN_ROOT}/skills/planning-context/scripts/gate-stop.sh\"; [ -f \"$SH\" ] || SH=$(ls \"$HOME/.claude/skills/planning-context/scripts/gate-stop.sh\" \"$HOME/.claude/plugins/marketplaces/planning-context/skills/planning-context/scripts/gate-stop.sh\" 2>/dev/null | head -1); [ -n \"$SH\" ] && [ -f \"$SH\" ] && sh \"$SH\" 2>/dev/null"
   PreCompact:
     - matcher: "*"
       hooks:
         - type: command
-          command: "SH=\"${CLAUDE_PLUGIN_ROOT}/skills/planning_context/scripts/inject-plan.sh\"; [ -f \"$SH\" ] || SH=$(ls \"$HOME/.claude/skills/planning_context/scripts/inject-plan.sh\" \"$HOME/.claude/plugins/marketplaces/planning_context/skills/planning_context/scripts/inject-plan.sh\" 2>/dev/null | head -1); [ -n \"$SH\" ] && [ -f \"$SH\" ] && sh \"$SH\" --context=precompact; exit 0"
+          command: "SH=\"${CLAUDE_PLUGIN_ROOT}/skills/planning-context/scripts/inject-plan.sh\"; [ -f \"$SH\" ] || SH=$(ls \"$HOME/.claude/skills/planning-context/scripts/inject-plan.sh\" \"$HOME/.claude/plugins/marketplaces/planning-context/skills/planning-context/scripts/inject-plan.sh\" 2>/dev/null | head -1); [ -n \"$SH\" ] && [ -f \"$SH\" ] && sh \"$SH\" --context=precompact; exit 0"
 metadata:
-  version: "1.2.0"
+  version: "1.3.0"
 ---
 
 # Planning Context
@@ -62,12 +62,12 @@ Planning / breaking down / retrospective / handoff / context logging / progress 
 
 ```bash
 # Linux/macOS
-$(command -v python3 || command -v python) ${CLAUDE_PLUGIN_ROOT}/skills/planning_context/scripts/session-catchup.py "$(pwd)"
+$(command -v python3 || command -v python) ${CLAUDE_PLUGIN_ROOT}/skills/planning-context/scripts/session-catchup.py "$(pwd)"
 ```
 
 ```powershell
 # Windows PowerShell
-& (Get-Command python -ErrorAction SilentlyContinue).Source "$env:USERPROFILE\.claude\plugins\marketplaces\planning_context\skills\planning_context\scripts\session-catchup.py" (Get-Location)
+& (Get-Command python -ErrorAction SilentlyContinue).Source "$env:USERPROFILE\.claude\plugins\marketplaces\planning-context\skills\planning-context\scripts\session-catchup.py" (Get-Location)
 ```
 
 If catchup report shows unsynced context:
@@ -78,12 +78,12 @@ If catchup report shows unsynced context:
 
 ## Important: Where Files Go
 
-- **Templates** are in `${CLAUDE_PLUGIN_ROOT}/skills/planning_context/templates/`.
+- **Templates** are in `${CLAUDE_PLUGIN_ROOT}/skills/planning-context/templates/`.
 - **Your planning files** go in **your project's `.context/` directory** (created automatically by `init-session.sh`).
 
 | Location | What Goes There |
 |----------|-----------------|
-| Skill directory (`${CLAUDE_PLUGIN_ROOT}/skills/planning_context/`) | Templates, scripts, reference docs |
+| Skill directory (`${CLAUDE_PLUGIN_ROOT}/skills/planning-context/`) | Templates, scripts, reference docs |
 | Your project `.context/` directory | `task_plan.md`, `findings.md`, `progress.md`, `handoff.md` |
 
 ## Quick Start
@@ -289,7 +289,7 @@ Copy these templates to start:
 
 ## Scripts
 
-Helper scripts for automation (all under `${CLAUDE_PLUGIN_ROOT}/skills/planning_context/scripts/`):
+Helper scripts for automation (all under `${CLAUDE_PLUGIN_ROOT}/skills/planning-context/scripts/`):
 
 - `init-session.sh` — Initialise the four planning files. Without args, writes them to `.context/` (main-line). With a name arg, creates a side-task under `.context/YYYY-MM-DD-<slug>/` and sets it as active. Refuses when a side-task is already active (no nesting).
 - `set-active-plan.sh` — Switch the active plan pointer (`.context/.active_plan`). `<slug>` → activate that side-task; `main` → clear the pointer and return to main-line; no arg → print the current active plan.
@@ -336,7 +336,7 @@ When working on multiple tasks in the same repo simultaneously (side-task branch
 # Main-line already established at .context/ from earlier init-session.sh (no args).
 
 # Open a side-task — ASK the user first (see Rule 8). Agent then runs:
-sh ${CLAUDE_PLUGIN_ROOT}/skills/planning_context/scripts/init-session.sh "Incident Investigation"
+sh ${CLAUDE_PLUGIN_ROOT}/skills/planning-context/scripts/init-session.sh "Incident Investigation"
 # → .context/2026-01-10-incident-investigation/{task_plan,findings,progress,handoff}.md
 # → .context/.active_plan = 2026-01-10-incident-investigation
 
@@ -344,10 +344,10 @@ sh ${CLAUDE_PLUGIN_ROOT}/skills/planning_context/scripts/init-session.sh "Incide
 export PLAN_ID=2026-01-10-incident-investigation
 
 # Return to main-line
-sh ${CLAUDE_PLUGIN_ROOT}/skills/planning_context/scripts/set-active-plan.sh main
+sh ${CLAUDE_PLUGIN_ROOT}/skills/planning-context/scripts/set-active-plan.sh main
 
 # Close the side-task (merge back). Agent drafts, user confirms, then:
-sh ${CLAUDE_PLUGIN_ROOT}/skills/planning_context/scripts/close-plan.sh 2026-01-10-incident-investigation \
+sh ${CLAUDE_PLUGIN_ROOT}/skills/planning-context/scripts/close-plan.sh 2026-01-10-incident-investigation \
     --summary "Investigated 502 spike; traced to upstream retry storm" \
     --finding "Retry policy needs jitter; open follow-up in main task_plan"
 ```
@@ -498,10 +498,10 @@ The machine ledger lives at `.context/<id>/ledger-<agent>.jsonl`, append-only, o
 
 ```bash
 # autonomous: low recitation + default-on attestation + ledger summary
-sh ${CLAUDE_PLUGIN_ROOT}/skills/planning_context/scripts/init-session.sh --autonomous "Long Research Run"
+sh ${CLAUDE_PLUGIN_ROOT}/skills/planning-context/scripts/init-session.sh --autonomous "Long Research Run"
 
 # gated: autonomous behavior plus the completion gate
-sh ${CLAUDE_PLUGIN_ROOT}/skills/planning_context/scripts/init-session.sh --gated "Build Pipeline"
+sh ${CLAUDE_PLUGIN_ROOT}/skills/planning-context/scripts/init-session.sh --gated "Build Pipeline"
 ```
 
 ## Security Boundary

@@ -1,5 +1,5 @@
 ---
-name: planning_context
+name: planning-context
 description: 个人化的 planning + 上下文记录 skill，脱胎自 planning-with-files，维护 task_plan.md / findings.md / progress.md / handoff.md 四份文件，规划与记录并重。触发词：规划、拆分、复盘、交接、上下文记录、进度日志、会话归档；EN: planning, breaking down, updating planning files, preparing handoff, >5 tool calls. 支持 /clear 后自动恢复上下文。
 user-invocable: true
 allowed-tools: "Read, Write, Edit, Bash, Glob, Grep"
